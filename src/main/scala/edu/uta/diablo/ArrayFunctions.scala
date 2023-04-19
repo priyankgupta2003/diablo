@@ -74,7 +74,7 @@ trait ArrayFunctions {
   @specialized
   final def outerJoin[K:ClassTag,T:ClassTag] ( xrdd: RDD[(K,T)], yrdd: RDD[(K,T)],
                                                f: (T,T) => T ): RDD[(K,T)]
-    = xrdd.fullOuterJoin(yrdd,number_of_partitions).map {
+    = xrdd.fullOuterJoin(yrdd,number_of_partitions).map{
             case (k,(Some(x),Some(y)))
               => (k,f(x,y))
             case (k,(Some(x),None))

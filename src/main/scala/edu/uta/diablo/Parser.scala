@@ -97,12 +97,13 @@ object Parser extends StandardTokenParsers {
   /* group infix operations into terms based on the operator precedence, from low to high */
   def terms ( level: Int ): Parser[(Expr,Expr)=>Expr]
       = precedence(level) ^^
-        { case ".." => (x:Expr,y:Expr) => Range(x,y,IntConst(1))
+        { case ":" => (x:Expr,y:Expr) => Range(x,y,IntConst(1))
           case "=" => (x:Expr,y:Expr) => Assign(x,Seq(List(y)))
           case op => (x:Expr,y:Expr) => MethodCall(x,op,List(y)) }
   def infix ( level: Int ): Parser[Expr]
       = positioned(if (level >= precedence.length) conses
                    else infix(level+1) * terms(level))
+  
 
   def fromRaw ( s: String ): String = s.replace("""\n""","\n")
         
@@ -138,9 +139,9 @@ object Parser extends StandardTokenParsers {
 
  def factorList ( e: Expr ): Parser[Expr]
      = positioned(
-         "[" ~ rep1sep( expr, "," ) ~ "]" ^^
-         { case _~s~_ => Index(e,s) }
-       | "." ~ ident ~ "(" ~ repsep( expr, "," ) ~ ")" ^^
+        //  "[" ~ rep1sep( expr, "," ) ~ "]" ^^
+        //  { case _~s~_ => Index(e,s) }
+        "." ~ ident ~ "(" ~ repsep( expr, "," ) ~ ")" ^^
          { case _~m~_~el~_ => MethodCall(e,m,el) }
        | "." ~ ident ^^
          { case _~a => MethodCall(e,a,null) }
@@ -148,7 +149,14 @@ object Parser extends StandardTokenParsers {
          { case _~a => Project(e,a) }
        | "#" ~ int ^^
          { case _~n => Nth(e,n) }
+         //slicer
+       | "[" ~ rep1sep( expr ~ opt(":" ~ expr ~ opt(":"~expr)),",")~"]" ^^
+         { case _~s~_ => Index(e,s.map{ case e~None => e
+                                      case e~Some(_~e2~None) => Range(e,e2,IntConst(1))
+                                      case e~Some(_~e2~Some(_~e3)) => Range(e,e2,e3) } )
+           }
        )
+ 
 
  def factor: Parser[Expr]
       = positioned(

@@ -1,0 +1,12 @@
+{
+    "files.watcherExclude": {
+        "**/target": true
+    },
+    "java.compile.nullAnalysis.mode": "automatic",
+    "cSpell.words": [
+        "matslicer",
+        "typemap",
+        "xrdd"
+    ],
+    "cSpell.language": "en,lorem"
+}
